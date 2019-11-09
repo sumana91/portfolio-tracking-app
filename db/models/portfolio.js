@@ -1,0 +1,36 @@
+// portfolio.model.js
+const mongoose = require('mongoose');
+
+const portfolio = mongoose.Schema({
+	ticker: {
+		type: String,
+		required: true
+	},
+	averageBuyPrice: {
+		type: Number,
+		default: 0
+	},
+	totalShares: {
+		type: Number,
+		default: 0
+	},
+	trades: [{
+		purchase: {
+			type: String,
+			required: true
+		},
+		price: {
+			type: Number,
+			default: 0,
+			required: true
+		},
+		shares: {
+			type: Number,
+			default: 0,
+			required: true
+		}
+	}],
+	versionKey: false // set to false then it wont create in mongodb
+});
+
+module.exports = mongoose.model('Portfolio', portfolio);
