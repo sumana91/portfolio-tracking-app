@@ -29,8 +29,7 @@ const portfolio = mongoose.Schema({
 			default: 0,
 			required: true
 		}
-	}],
-	versionKey: false // set to false then it wont create in mongodb
+	}]
 });
 
 module.exports = mongoose.model('Portfolio', portfolio);
