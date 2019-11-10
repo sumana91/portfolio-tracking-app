@@ -43,7 +43,6 @@ router.post('/add', async function (req, res) {
 			}
 		}
 	} catch (err) {
-		console.log("err", err);
 		throw new Error("Error while adding portfolio", err);
 	}
 })
