@@ -1,23 +1,20 @@
 const express = require('express');
 const app = express();
 var cors = require('cors')
-//let router = express.Router();
 const bodyParser = require('body-parser');
-const tradeRouter = require('./routes/trade.router');
-//const db = require('./app/config/mongodb.env.js');
-const PORT = process.env.PORT || 6000;
+const portfolioRouter = require('./routes/portfolio.router');
+const db = require('./config');
+const PORT = process.env.PORT || 3000;
 const mongoose = require('mongoose')
 
-mongoose.connect('mongodb://localhost/portfolio', { useNewUrlParser: true, useUnifiedTopology: true })
-var db = mongoose.connection;
-
-// Added check for DB connection
-if(!db)
-    console.log("Error connecting db")
-else
-    console.log("Db connected successfully")
-
-//mongoose.connect('mongodb://localhost/portfolio', { useNewUrlParser: true }, { useUnifiedTopology: true })
+mongoose.connect(db.MONGO_DB_URI || 'mongodb://localhost/portfolio',
+ { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+     if (err) {
+         console.log("error", err)
+         process.exit(1);
+     }
+     console.log("Db Connected Successfully")
+ })
 
 // cors middleware added
 app.use(cors());
@@ -35,4 +32,4 @@ app.get('/', function (req, res) {
 });
 
 // Setup router for http rest routes
-app.use('/api/portfolio', tradeRouter)
+app.use('/api/portfolio', portfolioRouter);
