@@ -24,10 +24,14 @@ router.post('/add', async function (req, res) {
 	}
 	try {
 		let portfolio = await Portfolio.findOne({ ticker: ticker });
+		console.log("portfolio", portfolio);
 		if (portfolio) {
+			console.log("inside if::::")
 			let finalResult = await updatePortfolio(portfolio, trade);
+			console.log("finalResult", finalResult);
 			return res.status(200).send(finalResult);
 		} else {
+			console.log("inside else::::");
 			if (trade.purchase.toLowerCase() === 'sell') {
 				return res.status(400).send("You don't have any trade to sell");
 			}
@@ -43,7 +47,7 @@ router.post('/add', async function (req, res) {
 			}
 		}
 	} catch (err) {
-		throw new Error("Error while adding portfolio", err);
+		res.status(500).send("Error while adding portfolio", err.message);
 	}
 })
 
@@ -62,12 +66,13 @@ router.put('/update', async function (req, res) {
 			}
 		}
 	} catch (err) {
-		throw new Error("Error while updating portfolio", err);
+		return res.send({"Error while updating portfolio": err.message});
 	}
 });
 
 //function to update portfolio
 updatePortfolio = (portfolio, trade) => {
+	console.log("portfolio", portfolio);
 	try {
 		let totalShares;
 		let averageBuyPrice = portfolio.averageBuyPrice;
@@ -80,9 +85,9 @@ updatePortfolio = (portfolio, trade) => {
 		} else {
 			return { message: "Error while updating Portfolio" };
 		}
-		let updatedResult = Portfolio.updateOne({
-			ticker: Portfolio.ticker,
-			$push: { trades: trade }, $set: { totalShares: totalShares, averageBuyPrice: averageBuyPrice }
+		let updatedResult = Portfolio.updateOne(
+			{ticker: portfolio.ticker},
+			{$push: { trades: trade }, $set: { totalShares: totalShares, averageBuyPrice: averageBuyPrice }
 		});
 		if (updatedResult) {
 			return updatedResult;
@@ -127,13 +132,15 @@ router.get('/returns', function (req, res) {
 });
 
 // GET all Portfolios 
-router.get('/:id', function (req, res) {
-	Portfolio.findById(req.params.id, function (err, Portfolios) {
-		if (err) {
-			throw err;
+router.get('/:id', async function (req, res) {
+	try {
+		let Portfolios = await Portfolio.findById(req.params.id);
+		if (Portfolio) {
+			res.send(Portfolios);
 		}
-		res.send(Portfolios);
-	});
+	} catch (err) {
+		res.status(500).send(err.message);
+	}
 });
 
 // Delete a trade
