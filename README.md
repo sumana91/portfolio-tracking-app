@@ -15,7 +15,7 @@ This application is written in NodeJs, Express with Mongodb that supports portfo
 - Open the application on localhost as `https://localhost:3000/`
 
 ## To Run the code locally
-`node server.js`
+`node server.js` or `nodemon server`
 
 ## Set of Endpoints implemented for a portfolio
 - Adding trades `https://localhost:3000/api/portfolio/add`
