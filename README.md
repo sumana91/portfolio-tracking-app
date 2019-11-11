@@ -1,5 +1,5 @@
 # portfolio-tracking-app
-Application written in NodeJs, Express with Mongodb that supports portfolio tracking. Every portfolio consists of trade which can be bought/sold.
+This application is written in NodeJs, Express with Mongodb that supports portfolio tracking. Every portfolio consists of trade which can be bought/sold.
 
 ## Requirements
 - Nodejs
