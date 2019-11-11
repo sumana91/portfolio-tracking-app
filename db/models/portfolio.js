@@ -1,7 +1,7 @@
 // portfolio.model.js
 const mongoose = require('mongoose');
 
-const portfolio = mongoose.Schema({
+const portfolio = new mongoose.Schema({
 	ticker: {
 		type: String,
 		required: true

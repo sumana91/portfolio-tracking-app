@@ -25,11 +25,14 @@ router.post('/add', async function (req, res) {
 	try {
 		let portfolio = await Portfolio.findOne({ ticker: ticker });
 		if (portfolio) {
-			let finalResult = await updatePortfolio(portfolio, trade);
-			return res.status(200).send(finalResult);
+			let result = await updatePortfolio(portfolio, trade);
+			if (result['message'] === 'success') {
+				return res.status(200).send(result['doc']);
+			}
+			return res.status(500).send({body: result['message']});
 		} else {
 			if (trade.purchase.toLowerCase() === 'sell') {
-				return res.status(400).send("You don't have any trade to sell");
+				return res.status(500).send({body: "You don't have enough shares to sell"});
 			}
 			let portfolio = {
 				ticker: ticker,
@@ -43,7 +46,7 @@ router.post('/add', async function (req, res) {
 			}
 		}
 	} catch (err) {
-		res.status(500).send("Error while adding portfolio", err.message);
+		return res.status(500).send({body: "Error while adding portfolio"});
 	}
 })
 
@@ -56,18 +59,20 @@ router.put('/update', async function (req, res) {
 		}
 		let portfolio = await Portfolio.findOne({ ticker: ticker });
 		if (portfolio) {
-			let finalResult = await updatePortfolio(portfolio, trade);
-			if (finalResult) {
-				return res.status(200).send(finalResult);
+			let result = await updatePortfolio(portfolio, trade);
+			if (result['message'] === 'success') {
+				return res.status(200).send(result['doc']);
 			}
+			return res.status(500).send({body: result['message']});
 		}
 	} catch (err) {
-		return res.send({ "Error while updating portfolio": err.message });
+		return res.status(500).send({ body:
+			"Error while updating portfolio: " + err.message });
 	}
 });
 
 //function to update portfolio
-updatePortfolio = (portfolio, trade) => {
+updatePortfolio = async(portfolio, trade) => {
 	try {
 		let totalShares;
 		let averageBuyPrice = portfolio.averageBuyPrice;
@@ -75,25 +80,25 @@ updatePortfolio = (portfolio, trade) => {
 			totalShares = portfolio.totalShares + trade.shares;
 			averageBuyPrice = ((portfolio.averageBuyPrice * portfolio.totalShares) +
 				(trade.price * trade.shares)) / (portfolio.totalShares + trade.shares);
-		} else if (trade.shares <= portfolio.shares) {
+		} else if (trade.shares <= portfolio.totalShares) {
 			totalShares = portfolio.totalShares - trade.shares;
 		} else {
-			return { message: "Error while updating Portfolio" };
+			return { "message": "You don't have enough shares to sell" };
 		}
-		let updatedResult = Portfolio.updateOne(
+		let updatedDoc = await Portfolio.findOneAndUpdate(
 			{ ticker: portfolio.ticker },
 			{
 				$push: { trades: trade }, $set: { totalShares: totalShares, averageBuyPrice: averageBuyPrice }
-			});
-		if (updatedResult) {
-			return updatedResult;
+			}, { "new": true, "useFindAndModify": false});
+		if (updatedDoc) {
+			return { "message": "success", "doc": updatedDoc };
 		}
 	} catch (err) {
-		throw err;
+		return {"message": err.message }
 	}
 };
 
-// GET all Portfolios with trade information 
+// GET all Portfolios with trade information
 router.get('/', function (req, res, next) {
 	Portfolio.find({}, function (err, Portfolios) {
 		if (err) {
@@ -127,7 +132,7 @@ router.get('/returns', function (req, res) {
 	});
 });
 
-// GET all Portfolios 
+// GET all Portfolios
 router.get('/:id', async function (req, res) {
 	try {
 		let Portfolios = await Portfolio.findById(req.params.id);
@@ -140,7 +145,7 @@ router.get('/:id', async function (req, res) {
 });
 
 // Delete a trade
-router.delete('/delete', async function (req, res) {
+router.delete('/delete/:ticker', async function (req, res) {
 	try {
 		let portfolio = await Portfolio.findOne({ ticker: req.params.ticker });
 		if (portfolio) {
