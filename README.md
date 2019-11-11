@@ -9,6 +9,23 @@ A simple application written in NodeJs, Express with Mongodb that supports portf
 
 ## Installation and Setup
 - Clone the repository to your local
-- Run npm install --save to get all the node packages.
-- Port is 6000
-- Open the application on localhost as https://localhost:3000/
+- Run `npm install --save` to get all the node packages.
+- Port is 3000
+- Open the application on localhost as `https://localhost:3000/`
+
+## To Run the code locally
+`node server.js`
+
+### Set of Endpoints implemented for a portfolio
+- Adding trades `https://localhost:3000/api/portfolio/add`
+  - **Method: POST**
+- Updating trades `https://localhost:3000/api/portfolio/update`
+  - **Method: PUT**
+- Removing trade `https://localhost:3000/api/portfolio/delete`
+  - **Method: DELETE**
+- Fetching portfolios `https://localhost:3000/api/portfolio`
+  - **Method: GET**
+- Fetching holings `https://localhost:3000/api/portfolio/holdings`
+  - **Method: GET**
+- Fetching returns `https://localhost:3000/api/portfolio/returns`
+  - **Method: GET**
