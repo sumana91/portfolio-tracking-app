@@ -32,4 +32,4 @@ A simple application written in NodeJs, Express with Mongodb that supports portf
   - **Method: GET**
 
 ## Demo 
-- Hosted on Heroku - [https://portfolio-tracking-app.herokuapp.com]
+- Hosted on Heroku - https://portfolio-tracking-app.herokuapp.com
