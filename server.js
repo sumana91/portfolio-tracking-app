@@ -7,7 +7,7 @@ const db = require('./config');
 const PORT = process.env.PORT || 3000;
 const mongoose = require('mongoose')
 
-mongoose.connect('mongodb://localhost/portfolio',
+mongoose.connect(db.MONGO_DB_URI || 'mongodb://localhost/portfolio',
  { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
      if (err) {
          console.log("error", err)
