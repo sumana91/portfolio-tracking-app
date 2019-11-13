@@ -35,4 +35,5 @@ This application is written in NodeJs, Express with Mongodb that supports portfo
 - Hosted on Heroku - https://portfolio-tracking-app.herokuapp.com
 
 ## API Testing using Jest
+- Run `npm run test`
 ![tests](https://user-images.githubusercontent.com/21328393/68613295-6d3d2600-04e4-11ea-8801-6ceb1bad9a87.png)
