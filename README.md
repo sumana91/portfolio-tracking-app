@@ -15,7 +15,7 @@ This application is written in NodeJs, Express with Mongodb that supports portfo
 - Open the application on localhost as `https://localhost:3000/`
 
 ## Database structure
-portfolio: _id, ticker, averageBuyPrice, totalShares,  trades: [
+- portfolio: _id, ticker, averageBuyPrice, totalShares,  trades: [
     _id,
     purchase,
     price,
