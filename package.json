@@ -1,5 +1,5 @@
 {
-  "name": "smallcasetech",
+  "name": "portfolio-tracking-application",
   "version": "1.0.0",
   "description": "Node Express MongoDb API development",
   "main": "index.js",
