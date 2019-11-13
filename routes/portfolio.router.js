@@ -28,7 +28,7 @@ router.get('/returns', function (req, res) {
 		if (err) {
 			return res.status(500).send({ message: "Error while fetching returns" })
 		}
-		let calculativeReturn = 0;
+		let cummulativeReturn = 0;
 		Portfolios.forEach(item => {
 			cummulativeReturn += (100 - item.averageBuyPrice) * (item.totalShares);
 		});
@@ -120,12 +120,15 @@ router.put('/update/:trade_id', async function (req, res) {
 			let totalShares = 0;
 			let sharesDiff = 0;
 			let averageBuyPrice = portfolio.averageBuyPrice;
+			let trades = await Portfolio.find({
+				'_id': portfolio._id,
+				"trades._id": req.params.trade_id
+			}, { 'trades.$': 1 });
+			let tradeItem = trades[0].trades[0];
+			if(tradeItem.purchase === 'sell') {
+				return res.status(500).send({ "message": "You cannot update sold trades" }); 
+			}
 			if (trade.purchase.toLowerCase() == 'buy') {
-				let trades = await Portfolio.find({
-					'_id': portfolio._id,
-					"trades._id": req.params.trade_id
-				}, { 'trades.$': 1 });
-				let tradeItem = trades[0].trades[0];
 				if (trade.shares < tradeItem.shares) {
 					sharesDiff = parseInt(tradeItem.shares) - parseInt(trade.shares);
 					totalShares = parseInt(portfolio.totalShares) - sharesDiff;
