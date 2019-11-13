@@ -277,7 +277,7 @@ describe('add test suite', () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body).toEqual(
       expect.objectContaining({
-        "averageBuyPrice": 10,
+        "averageBuyPrice": 0,
         "ticker": "apple", "totalShares": 0
       })
     );
@@ -310,12 +310,9 @@ describe('add test suite', () => {
 
     const id = res.body["_id"]
     const trade_id = res.body.trades[0]["_id"]
-    console.log("tradeID", id, trade_id);
-
     const delTrade = await request(app)
       .delete('/api/portfolio/delete/' + id + "/" + trade_id)
     expect(delTrade.statusCode).toEqual(200);
-    console.log("body", delTrade.body);
     expect(delTrade.body).toEqual(
       expect.objectContaining({
         "message": "Trade deleted successfully"

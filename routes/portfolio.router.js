@@ -2,6 +2,52 @@ const express = require('express');
 const router = express.Router();
 const Portfolio = require('../db/models/portfolio');
 
+// GET all Portfolios with trade information
+router.get('/', function (req, res, next) {
+	Portfolio.find({}, function (err, Portfolios) {
+		if (err) {
+			return res.status(500).send('Error while fetching portfolios', err);
+		}
+		return res.status(200).send({ portfolios: Portfolios });
+	});
+});
+
+// GET all Holdings(Portfolios without trade information)
+router.get('/holdings', function (req, res) {
+	Portfolio.find({}, ['ticker', 'averageBuyPrice', 'totalShares'], function (err, Portfolios) {
+		if (err) {
+			return res.status(500).send({ message: "Error while fetching holdings" })
+		}
+		return res.status(200).send(Portfolios);
+	});
+});
+
+// GET all returns
+router.get('/returns', function (req, res) {
+	Portfolio.find({}, ['ticker', 'averageBuyPrice', 'totalShares'], function (err, Portfolios) {
+		if (err) {
+			return res.status(500).send({ message: "Error while fetching returns" })
+		}
+		let calculativeReturn = 0;
+		Portfolios.forEach(item => {
+			cummulativeReturn += (100 - item.averageBuyPrice) * (item.totalShares);
+		});
+		return res.status(200).send({ cummulativeReturn: cummulativeReturn });
+	});
+});
+
+// GET Portfolios by id
+router.get('/:id', async function (req, res) {
+	try {
+		let Portfolios = await Portfolio.findById(req.params.id);
+		if (Portfolio) {
+			return res.status(200).send(Portfolios);
+		}
+	} catch (err) {
+		return res.status(500).send(err.message);
+	}
+});
+
 // POST add new Portfolio and trades
 router.post('/add', async function (req, res) {
 	const { ticker, shares, purchase, price } = req.body;
@@ -53,17 +99,60 @@ router.post('/add', async function (req, res) {
 // PUT endpoint to update
 router.put('/update/:trade_id', async function (req, res) {
 	try {
-		const { ticker } = req.body;
+		const { ticker, shares, purchase, price } = req.body;
+		let trade = {
+			trade_id: req.params.trade_id,
+			shares: shares,
+			purchase: purchase,
+			price: price
+		}
 		if (!ticker) {
 			return res.status(400).send("Please enter valid ticker");
 		}
+		if (shares < 0 || isNaN(shares)) {
+			return res.status(400).send("Please enter valid shares");
+		}
+		if (price < 0 || isNaN(price)) {
+			return res.status(400).send("Please enter price as a non negative number");
+		}
 		let portfolio = await Portfolio.findOne({ ticker: req.body.ticker });
 		if (portfolio) {
-			let result = await updatePortfolio(portfolio, trade);
-			if (result['message'] === 'success') {
-				return res.status(200).send(result['doc']);
+			let totalShares = 0;
+			let sharesDiff = 0;
+			let averageBuyPrice = portfolio.averageBuyPrice;
+			if (trade.purchase.toLowerCase() == 'buy') {
+				let trades = await Portfolio.find({
+					'_id': portfolio._id,
+					"trades._id": req.params.trade_id
+				}, { 'trades.$': 1 });
+				let tradeItem = trades[0].trades[0];
+				if (trade.shares < tradeItem.shares) {
+					sharesDiff = parseInt(tradeItem.shares) - parseInt(trade.shares);
+					totalShares = parseInt(portfolio.totalShares) - sharesDiff;
+				} else {
+					sharesDiff = parseInt(trade.shares) - parseInt(tradeItem.shares);
+					totalShares = parseInt(portfolio.totalShares) + parseInt(sharesDiff);
+				}
+				averageBuyPrice = ((portfolio.averageBuyPrice * portfolio.totalShares) +
+					(trade.price * trade.shares)) / (portfolio.totalShares + trade.shares);
+				if (totalShares === 0) {
+					averageBuyPrice = 0;
+				}
+				let updatedDoc = await Portfolio.findOneAndUpdate({ ticker: portfolio.ticker, 'trades._id': req.params.trade_id },
+					{
+						$set: {
+							totalShares: totalShares, averageBuyPrice: averageBuyPrice,
+							'trades.$.price': trade.price, 'trades.$.shares': trade.shares, 'trades.$.purchase': trade.purchase
+						}
+					}, { "new": true, "useFindAndModify": false });
+				if (updatedDoc) {
+					return res.status(200).send(updatedDoc);
+				}
+				return res.status(500).send({ body: result['message'] });
 			}
-			return res.status(500).send({ body: result['message'] });
+			else {
+				return res.status(500).send({ "message": "You cannot update sold trades" });
+			}
 		}
 	} catch (err) {
 		return res.status(500).send({
@@ -84,6 +173,9 @@ updatePortfolio = async (portfolio, trade) => {
 				(trade.price * trade.shares)) / (portfolio.totalShares + trade.shares);
 		} else if (trade.shares <= portfolio.totalShares) {
 			totalShares = portfolio.totalShares - trade.shares;
+			if (totalShares === 0) {
+				averageBuyPrice = 0;
+			}
 		} else {
 			return { "message": "You don't have enough shares to sell" };
 		}
@@ -100,52 +192,6 @@ updatePortfolio = async (portfolio, trade) => {
 	}
 };
 
-// GET all Portfolios with trade information
-router.get('/', function (req, res, next) {
-	Portfolio.find({}, function (err, Portfolios) {
-		if (err) {
-			return res.status(500).send('Error while fetching portfolios', err);
-		}
-		return res.status(200).send({ portfolios: Portfolios });
-	});
-});
-
-// GET all Holdings(Portfolios without trade information)
-router.get('/holdings', function (req, res) {
-	Portfolio.find({}, ['ticker', 'averageBuyPrice', 'totalShares'], function (err, Portfolios) {
-		if (err) {
-			return res.status(500).send({ message: "Error while fetching holdings" })
-		}
-		return res.status(200).send(Portfolios);
-	});
-});
-
-// GET all returns
-router.get('/returns', function (req, res) {
-	Portfolio.find({}, ['ticker', 'averageBuyPrice', 'totalShares'], function (err, Portfolios) {
-		if (err) {
-			return res.status(500).send({ message: "Error while fetching returns" })
-		}
-		let cummulativeReturn = 0;
-		Portfolios.forEach(item => {
-			cummulativeReturn += (100 - item.averageBuyPrice) * (item.totalShares);
-		});
-		return res.status(200).send({ cummulativeReturn: cummulativeReturn });
-	});
-});
-
-// GET all Portfolios
-router.get('/:id', async function (req, res) {
-	try {
-		let Portfolios = await Portfolio.findById(req.params.id);
-		if (Portfolio) {
-			return res.status(200).send(Portfolios);
-		}
-	} catch (err) {
-		return res.status(500).send(err.message);
-	}
-});
-
 // Delete a trade
 router.delete('/delete/:portfolio_id/:trade_id', async function (req, res) {
 	try {
@@ -158,24 +204,26 @@ router.delete('/delete/:portfolio_id/:trade_id', async function (req, res) {
 				"trades._id": req.params.trade_id
 			}, { 'trades.$': 1 });
 			let tradeItem = trades[0].trades[0];
-			let tradesCount = await Portfolio.find({}, {_id: 0}, ['trades']);
+			let tradesCount = await Portfolio.find({}, { _id: 0 }, ['trades']);
 			let count = tradesCount[0].trades.length;
 			if (tradeItem.purchase === "sell") {
 				totalShares = portfolio.totalShares + tradeItem.shares;
 			} else {
 				totalShares = portfolio.totalShares - tradeItem.shares;
 				if (totalShares < 0) {
-				return res.status(500).send("You cannot delete trades as it be negative");
+					return res.status(500).send("You cannot delete trades as it be negative");
 				}
 			}
-				averageBuyPrice = ((portfolio.averageBuyPrice * count) - 
+			averageBuyPrice = ((portfolio.averageBuyPrice * count) -
 				(tradeItem.price * (tradeItem.purchase === "buy" ? 1 : -1)))
-					/ (count - 1);
+				/ (count - 1);
 			let result = await Portfolio.findOneAndUpdate({ _id: portfolio._id },
-					{ $pull: {
+				{
+					$pull: {
 						trades: { _id: req.params.trade_id }
-					}},
-					{ "new": true, "useFindAndModify": false });
+					}
+				},
+				{ "new": true, "useFindAndModify": false });
 			if (result) {
 				let updatedDoc = await Portfolio.findOneAndUpdate(
 					{ _id: req.params.portfolio_id },
