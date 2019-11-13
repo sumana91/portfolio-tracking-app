@@ -18,11 +18,11 @@ This application is written in NodeJs, Express with Mongodb that supports portfo
 `node server.js` or `nodemon server`
 
 ## Set of Endpoints implemented for a portfolio
-- Adding trades `https://localhost:3000/api/portfolio/add`
+- Adding trades, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/add`
   - **Method: POST**
-- Updating trades `https://localhost:3000/api/portfolio/update`
+- Updating trades, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/update`
   - **Method: PUT**
-- Removing trade `https://localhost:3000/api/portfolio/delete`
+- Removing trade, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/delete`
   - **Method: DELETE**
 - Fetching portfolios `https://localhost:3000/api/portfolio`
   - **Method: GET**
