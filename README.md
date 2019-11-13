@@ -15,6 +15,13 @@ This application is written in NodeJs, Express with Mongodb that supports portfo
 - Open the application on localhost as `https://localhost:3000/`
 
 ## Database structure
+portfolio: _id, ticker, averageBuyPrice, totalShares,  trades: [
+    _id,
+    purchase,
+    price,
+    shares
+  ]
+
 ![Capture](https://user-images.githubusercontent.com/21328393/68760738-91aa1700-0638-11ea-885e-5dd3cfdbf258.PNG)
 
 ## To Run the code locally
