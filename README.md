@@ -14,15 +14,25 @@ This application is written in NodeJs, Express with Mongodb that supports portfo
 - MongoDB document based db structure that stores portfolios and trades accordingly
 - Open the application on localhost as `https://localhost:3000/`
 
+## Database structure
+- portfolio: _id, ticker, averageBuyPrice, totalShares,  trades: [
+    _id,
+    purchase,
+    price,
+    shares
+  ]
+
+![Capture](https://user-images.githubusercontent.com/21328393/68760738-91aa1700-0638-11ea-885e-5dd3cfdbf258.PNG)
+
 ## To Run the code locally
 `node server.js` or `nodemon server`
 
 ## Set of Endpoints implemented for a portfolio
 - Adding trades, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/add`
   - **Method: POST**
-- Updating trades, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/update`
+- Updating trades, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/update/:trade_id`
   - **Method: PUT**
-- Removing trade, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/delete`
+- Removing trade, which updates the portfolio accordingly `https://localhost:3000/api/portfolio/delete/:portfolio_id/:trade_id`
   - **Method: DELETE**
 - Fetching portfolios `https://localhost:3000/api/portfolio`
   - **Method: GET**
